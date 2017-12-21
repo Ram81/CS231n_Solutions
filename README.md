@@ -1,1 +1,2 @@
-# CS231n_Solutions
+# Implementation of CS231n Computer Vision Course Assignments.
+
