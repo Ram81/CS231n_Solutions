@@ -96,6 +96,7 @@ class TwoLayerNet(object):
     # classifier loss.                                                          #
     #############################################################################
     exp_scores = np.exp(scores)
+    #print(exp_scores.dtype, scores_128.dtype, scores.dtype)
     prob = exp_scores / np.sum(exp_scores, axis = 1, keepdims = True)
 
     #cross-entropy & l2 regularization
@@ -115,7 +116,7 @@ class TwoLayerNet(object):
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
     dscores = prob
-    dscores[range(N), y] = -1
+    dscores[range(N), y] -= 1
     dscores /= N
 
     grads['W2'] = np.dot(a1.T, dscores)
@@ -123,7 +124,7 @@ class TwoLayerNet(object):
 
     dhidden = np.dot(dscores, W2.T)
     #backprop ReLU
-    dhidden[a1<=0] = 0
+    dhidden[a1 <= 0] = 0
 
     grads['W1'] = np.dot(X.T, dhidden)
     grads['b1'] = np.sum(dhidden, axis=0)
@@ -138,7 +139,7 @@ class TwoLayerNet(object):
 
   def train(self, X, y, X_val, y_val,
             learning_rate=1e-3, learning_rate_decay=0.95,
-            reg=5e-6, num_iters=100,
+            reg=1e-5, num_iters=100,
             batch_size=200, verbose=False):
     """
     Train this neural network using stochastic gradient descent.
@@ -205,10 +206,8 @@ class TwoLayerNet(object):
       # Every epoch, check train and val accuracy and decay learning rate.
       if it % iterations_per_epoch == 0:
         # Check accuracy
-        y_train_pred = self.predict(X_batch)
-        y_val_pred = self.predict(X_val)
-        train_acc = np.mean(y_train_pred == y_batch)
-        val_acc = np.mean(y_val_pred == y_val)
+        train_acc = (self.predict(X_batch) == y_batch).mean()
+        val_acc = (self.predict(X_val) == y_val).mean()
         train_acc_history.append(train_acc)
         val_acc_history.append(val_acc)
 
@@ -241,11 +240,15 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+    # Input Layer to Hidden Layer
+    y_pred_z = X.dot(self.params['W1']) + self.params['b1']
+    # ReLU Activation
+    y_pred_a1 = np.maximum(y_pred_z, 0)
+    # Hidden Layer to Output Layer
+    y_pred_score = y_pred_a1.dot(self.params['W2']) + self.params['b2']
+    y_pred = np.argmax(y_pred_score, axis=1)
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################
 
     return y_pred
-
-
